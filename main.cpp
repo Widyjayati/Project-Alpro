@@ -2,6 +2,6 @@
 using namespace std;
 
 int main() {
-    cout << "Projek Alpro Dimulai!" << endl;
+    cout << "akhirnya jadi" << endl;
     return 0;
 }
