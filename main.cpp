@@ -2,6 +2,6 @@
 using namespace std;
 
 int main() {
-    cout << "akhirnya jadi" << endl;
+    cout << "bisa langsung dari VsCode" << endl;
     return 0;
 }
