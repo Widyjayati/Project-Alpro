@@ -1,9 +1,15 @@
+// sistem manajemen laundry
 #include <iostream>
 using namespace std;
 
-int main() {
-    cout << "bisa langsung dari VsCode" << endl;
-    cout << "coba lagi" << endl;
-    cout << "halo";
-    return 0;
-}
+struct pesanan {
+    int id;                     // 1
+    string namaPelanggan;       // "Widy Jayati"
+    string noHp;                // "081269705018"
+    float beratKg;              // 3.5
+    string jenisLayanan;        // "cuci + setrika"
+    float hargaPerKg;           //10000 > diisi admin
+    float totalBiaya;           //otomatis : beratKg x hargaPerKg
+    string tanggalMasuk;        //"01=04-2026" > diisi admin
+    string status;              //"menunggu/proses/selesai/diambil"
+};
