@@ -3,27 +3,47 @@
 #include <iomanip>
 using namespace std;
 
+// struct, node, pointer, linkedlist tunggal, crud pelanggan, bubble sort, operasi file
 struct pesanan {
     int id;                     // 1
     string namaPelanggan;       // "Widy Jayati"
     string noHp;                // "081269705018"
     float beratKg;              // 3.5
-    string jenisLayanan;        // "cuci + setrika"
+    string jenisLayanan;        // "cuci + setrika", "cuci kering"
     float hargaPerKg;           //10000 > diisi admin
-    float totalHarga;           //otomatis : beratKg x hargaPerKg
-    string tanggalMasuk;        //"01=04-2026" > diisi admin
+    float totalHarga;           //otomatis : beratKg * hargaPerKg
+    string tanggalMasuk;        
     string status;              //"menunggu/proses/selesai/diambil"
     string metodeBayar;         //"cash atau transfer dll"
 };
 
-struct Node{
-    pesanan data;
-    Node* next;
+//ll tunggal > membungkus struct pesanan + pointer next
+struct NodePesanan{
+    pesanan data;   //isi datanya (struct di atas)
+    NodePesanan* next;     // pointer ke data selanjutnya
 };
 
-Node* head = NULL;
-int idCounter = 1;
+//Node untuk ll ganda (riwayat pesanan selesai/diambil)
+struct NodeRiwayat{
+    pesanan data;           //data pesanan yang sudah selesai/diambil
+    NodeRiwayat* next;      //pointer ke data selanjutnya
+    NodeRiwayat* prev;      //pointer ke data sebelumnya
+};
 
+//variabel global penanda posisi dalam linked list
+NodePesanan* headPesanan = nullptr;       //kepala ll tunggal > menunjuk ke data pertama
+NodeRiwayat* headRiwayat = nullptr;         //kepala ll ganda > menunjuk ke data pertama    
+NodeRiwayat* tailRiwayat = nullptr;         //ekor ll ganda > menunjuk ke data terakhir
+
+//counter ID pesanan (selalu bertambah setiap pesanan baru)
+int idPesananAuto = 1;
+int idTransaksiAuto = 1;    //untuk riwayat
+
+// =====FUNGSI BANTU========
+//cetak tanggal hari ini
+string getTanggal(){
+    
+}
 
 void menuAdmin(){
 
