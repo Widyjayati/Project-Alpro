@@ -24,6 +24,17 @@ struct Node{
 Node* head = NULL;
 int idCounter = 1;
 
+
+void menuAdmin(){
+
+}
+
+
+void menuPelanggan(){
+    
+}
+
+
 void Halaman_utama(){
     int pilihRole;
 
@@ -41,11 +52,11 @@ void Halaman_utama(){
 
         if (pilihRole == 1){
 
-        } elseif (pilihRole == 2){
+        } else if (pilihRole == 2){
 
-        } elseif (pilihRole == 3){
-            cout << ""
-            return;
+        } else if (pilihRole == 3){
+            cout << "Terima Kasih!" << endl;
+            break;
         } else{
             cout << "Menu tidak terdaftar!" << endl;
         }
