@@ -23,3 +23,32 @@ struct Node{
 
 Node* head = NULL;
 int idCounter = 1;
+
+void Halaman_utama(){
+    int pilihRole;
+
+    do{
+        cout << setw(30) << setfill('=') << "" << endl;
+        cout << "Silakan Memilih Role: " << endl;
+        cout << setw(30) << setfill('=') << "" << endl << endl;
+        cout << "1. Admin" << endl;
+        cout << "2. Pelanggan" << endl;
+        cout << "3. Keluar" << endl;
+        cout << "Pilih role (1-3): "; cin >> pilihRole;
+
+        system("pause");
+        system("cls");
+
+        if (pilihRole == 1){
+
+        } elseif (pilihRole == 2){
+
+        } elseif (pilihRole == 3){
+            cout << ""
+            return;
+        } else{
+            cout << "Menu tidak terdaftar!" << endl;
+        }
+    } while (pilihRole != 3);
+
+}
