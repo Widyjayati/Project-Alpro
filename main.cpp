@@ -27,7 +27,7 @@ const string layanan[6] = {
 struct pesanan {
     int id;
     string namaPelanggan;
-    string jenisLayanan;        // kode 1-5
+    int jenisLayanan;        // kode 1-5
     float beratKg;
     string pengiriman;          //Ambil | Antar
     string alamat;              // diisi jika pengiriman = "antar"
@@ -154,8 +154,40 @@ void loadDariFile(){
     system("pause");
 }
 
-void tampilkanSemuaPesanan(){}
+void tampilkanSemuaPesanan() {
+    system("cls");
+    tampilkanHeader();
+    cout << "================ DAFTAR PESANAN ================" << endl;
 
+    if (head == nullptr) {
+        cout << "\n  Belum ada data pesanan saat ini." << endl << endl;
+        system("pause");
+        return;
+    }
+
+    // Header Tabel
+    cout << left << setw(4)  << "ID" 
+         << setw(15) << "Pelanggan" 
+         << setw(20) << "Layanan" 
+         << setw(8)  << "Berat" 
+         << setw(12) << "Harga" 
+         << setw(10) << "Status" << endl;
+    garis();
+
+    pesanan* temp = head;
+    while (temp != nullptr) {
+        cout << left << setw(4)  << temp->id
+             << setw(15) << (temp->namaPelanggan.length() > 13 ? temp->namaPelanggan.substr(0, 11) + ".." : temp->namaPelanggan)
+             << setw(20) << layanan[temp->jenisLayanan] // Mengambil teks dari array konstanta
+             << temp->beratKg << setw(5) << " Kg"
+             << "Rp " << right << setw(7) << temp->harga << "  "
+             << left << setw(10) << temp->status << endl;
+        
+        temp = temp->next;
+    }
+    garis();
+    system("pause");
+}
 //SORTING - Bubble Sort by Harga (Admin)
 void sortPesanan(){
     system("cls");
