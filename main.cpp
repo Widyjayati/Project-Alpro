@@ -1,38 +1,3 @@
-// ================================================================
-//  SISTEM MANAJEMEN LAUNDRY
-//  Branch B : Login, LL Ganda (Riwayat), CRUD, Searching, Menu
-//
-//  CARA PENGGABUNGAN DENGAN BRANCH A:
-//  1. Buka file Branch A (punya temenmu)
-//  2. Hapus fungsi tampilkanSemuaPesanan() yang isinya kosong {}
-//  3. Copy semua isi file Branch B ini
-//     dan paste di BAWAH semua kode Branch A
-//     (tapi SEBELUM fungsi main jika Branch A sudah punya main)
-//  4. Pastikan hanya ada SATU fungsi main()
-// ================================================================
-
-#include <iostream>
-#include <iomanip>
-using namespace std;
-
-// ================================================================
-//  CATATAN: Semua ini SUDAH ADA di Branch A, jadi TIDAK ditulis
-//  ulang di sini supaya tidak bentrok waktu digabung:
-//    - const adminUser, adminPass, biaya_antar, tarif[], layanan[]
-//    - struct pesanan
-//    - pesanan* head, int idCounter
-//    - void garis(), garisBintang(), tampilkanHeader(), tampilkanLayanan()
-//    - void sortPesanan()
-//    - void simpanKeFile(), loadDariFile()
-//
-//  Yang ada di file ini adalah milik Branch B saja.
-// ================================================================
-
-
-// ----------------------------------------------------------------
-//  STRUCT RIWAYAT  –  Linked List Ganda
-//  Menyimpan log setiap aktivitas CRUD (Tambah / Edit / Hapus)
-// ----------------------------------------------------------------
 struct riwayat {
     int      idPesanan;
     string   namaPelanggan;
@@ -469,7 +434,7 @@ bool loginAdmin() {
     cout << "\n  Username : "; cin >> user;
     cout << "  Password : "; cin >> pass;
 
-    if (user == adminUser && pass == adminPass) {
+    if (user == "admin" && pass == "12345") {
         sesiRole = "admin";
         sesiNama = "Admin";
         cout << "\n  Login berhasil! Selamat datang, Admin.\n\n";
