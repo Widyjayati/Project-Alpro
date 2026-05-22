@@ -1,22 +1,5 @@
-struct riwayat {
-    int      idPesanan;
-    string   namaPelanggan;
-    string   keterangan;    //"tambah" | "edit" | "hapus"
-    string   tanggal;
-    riwayat* next;          //pointer ke node berikutnya
-    riwayat* prev;          //pointer ke node sebelumnya
-};
-
-riwayat* rHead   = nullptr;   //kepala linked list riwayat
-riwayat* rTail   = nullptr;   //ekor linked list riwayat
-
-string   sesiRole = "";       //"admin" atau "user"
-string   sesiNama = "";       //nama pelanggan yang lg login
-
-
 //riwayat
-void tambahRiwayat(int idPesanan, string nama,
-                   string keterangan, string tanggal) {
+void tambahRiwayat(int idPesanan, string nama, string keterangan, string tanggal) {
     riwayat* baru       = new riwayat();
     baru->idPesanan     = idPesanan;
     baru->namaPelanggan = nama;
@@ -193,84 +176,6 @@ void tampilkanStruk() {
 }
 
 
-//tambah pesenan
-void tambahPesanan(bool isAdmin = true) {
-    system("cls");
-    tampilkanHeader();
-    cout << "========== TAMBAH PESANAN ==========" << endl;
-
-    pesanan* baru = new pesanan();
-    baru->id      = idCounter++;  //idCounter dari Branch A
-
-    //nama pelanggan
-    if (isAdmin) {
-        cout << "  Nama Pelanggan   : ";
-        cin.ignore();
-        getline(cin, baru->namaPelanggan);
-    } else {
-        baru->namaPelanggan = sesiNama;
-        cin.ignore();
-        cout << "  Nama Pelanggan   : " << sesiNama << endl;
-    }
-
-    //berat
-    cout << "  Berat (kg)       : ";
-    cin >> baru->beratKg;
-
-    //jenis layanan
-    cout << endl;
-    tampilkanLayanan();  //dari Branch A
-    int pilLayanan;
-    do {
-        cout << "  Pilih layanan (1-5): ";
-        cin >> pilLayanan;
-    } while (pilLayanan < 1 || pilLayanan > 5);
-    baru->jenisLayanan = pilLayanan;
-
-    //itung harga awal
-    baru->harga = baru->beratKg * tarif[baru->jenisLayanan];
-
-    //pengiriman
-    int p;
-    cout << "\n  Pengiriman:" << endl;
-    cout << "  [1] Antar ke Alamat  (+Rp " << biaya_antar << ")" << endl;
-    cout << "  [2] Ambil Sendiri    (Gratis)" << endl;
-    cout << "  Pilih: "; cin >> p;
-
-    if (p == 1) {
-        baru->pengiriman = "Antar";
-        cout << "  Alamat: ";
-        cin.ignore();
-        getline(cin, baru->alamat);
-        baru->harga += biaya_antar;  //tambah ongkir
-    } else {
-        baru->pengiriman = "Ambil";
-        baru->alamat     = "-";
-    }
-
-    //tanggal
-    cout << "  Tanggal (dd/mm/yyyy): ";
-    cin >> baru->tanggal;
-
-    baru->status = "Antri";  //status awal selalu Antri
-    baru->next   = nullptr;
-
-    if (head == nullptr) {
-        head = baru;
-    } else {
-        pesanan* temp = head;
-        while (temp->next != nullptr) temp = temp->next;
-        temp->next = baru;
-    }
-
-    tambahRiwayat(baru->id, baru->namaPelanggan, "Tambah", baru->tanggal);
-
-    cout << "\n  Pesanan berhasil ditambahkan!" << endl;
-    cout << "  Total harga: Rp " << baru->harga << endl << endl;
-    system("pause");
-
-    tampilkanStruk();
-}
 
 
 //edit pesenan
@@ -370,7 +275,6 @@ void cariPesanan() {
         pesanan* temp = head;
         while (temp != nullptr) {
             if (temp->id == id) {
-                // User tidak boleh lihat data orang lain
                 if (sesiRole == "user" && temp->namaPelanggan != sesiNama) {
                     break;
                 }
@@ -476,29 +380,27 @@ void menuAdmin() {
         tampilkanHeader();
         cout << "  Halo, Admin!" << endl;
         garis();
-        cout << "  [1] Tambah Pesanan" << endl;
-        cout << "  [2] Lihat Semua Pesanan" << endl;
-        cout << "  [3] Edit Pesanan" << endl;
-        cout << "  [4] Hapus Pesanan" << endl;
-        cout << "  [5] Cari Pesanan" << endl;
-        cout << "  [6] Urutkan Pesanan" << endl;
-        cout << "  [7] Lihat Riwayat Aktivitas" << endl;
-        cout << "  [8] Tampilkan Struk" << endl;
-        cout << "  [9] Simpan ke File" << endl;
+        cout << "  [1] Lihat Semua Pesanan" << endl;
+        cout << "  [2] Edit Pesanan" << endl;
+        cout << "  [3] Hapus Pesanan" << endl;
+        cout << "  [4] Cari Pesanan" << endl;
+        cout << "  [5] Urutkan Pesanan" << endl;
+        cout << "  [6] Lihat Riwayat Aktivitas" << endl;
+        cout << "  [7] Tampilkan Struk" << endl;
+        cout << "  [8] Simpan ke File" << endl;
         cout << "  [0] Logout" << endl;
         garis();
         cout << "  Pilih: "; cin >> pilih;
 
         switch (pilih) {
-            case 1: tambahPesanan(true);     break;
-            case 2: tampilkanSemuaPesanan(); break;
-            case 3: editPesanan();           break;
-            case 4: hapusPesanan();          break;
-            case 5: cariPesanan();           break;
-            case 6: sortPesanan();           break;  //dari Branch A
-            case 7: tampilkanRiwayat();      break;
-            case 8: tampilkanStruk();        break;
-            case 9: simpanKeFile();          break;  //dari Branch A
+            case 1: tampilkanSemuaPesanan(); break;
+            case 2: editPesanan();           break;
+            case 3: hapusPesanan();          break;
+            case 4: cariPesanan();           break;
+            case 5: sortPesanan();           break; 
+            case 6: tampilkanRiwayat();      break;
+            case 7: tampilkanStruk();        break;
+            case 8: simpanKeFile();          break;            
             case 0:
                 sesiRole = "";
                 sesiNama = "";
@@ -530,7 +432,7 @@ void menuPelanggan() {
         cout << "  Pilih: "; cin >> pilih;
 
         switch (pilih) {
-            case 1: tambahPesanan(false);   break;
+            case 1: tambahPesanan();   break;
             case 2: tampilkanPesananUser(); break;
             case 3: tampilkanStruk();       break;
             case 4: cariPesanan();          break;
@@ -579,7 +481,7 @@ void halamanUtama() {
 
 //main
 int main() {
-    loadDariFile();    //muat data dari file saat program dibuka (dari Branch A)
+    loadDariFile();   
     halamanUtama();
     return 0;
 }
