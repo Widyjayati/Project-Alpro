@@ -2,7 +2,6 @@
 #include <iomanip>
 using namespace std;
 
-//KONSTANTA
 const string adminUser  = "admin";
 const string adminPass  = "12345";
 const float biaya_antar = 5000;
@@ -36,6 +35,7 @@ struct pesanan {
     string tanggal;             //input manual dd/mm/yyyy
     pesanan* next;              //POINTER ke pesanan berikutnya
 };
+pesanan* head   = nullptr;
 
 //STRUCT RIWAYAT - ll Ganda menyimpan log setiap aktivitas CRUD
 struct riwayat{
@@ -43,12 +43,10 @@ struct riwayat{
     string namaPelanggan;
     string keterangan;
     string tanggal;
-    riwayat* next;              //POINTER ke riwayat berikutnya
-    riwayat* prev;              //POINTER ke riwayat sebelumnya
+    riwayat* next;              
+    riwayat* prev;              
 };
 
-//VARIABEL GLOBAL
-pesanan* head   = nullptr;
 riwayat* rHead  = nullptr;
 riwayat* rTail  = nullptr;
 int idCounter   = 1;            //counter id pesanan otomatis
@@ -56,6 +54,9 @@ int idCounter   = 1;            //counter id pesanan otomatis
 string sesiRole = "";           //"admin" atau "user"
 string sesiNama = "";           //nama pelanggan (untuk User)
 
+void tampilkanSemuaPesanan();
+void tambahRiwayat(int idPesanan, string nama, string keterangan, string tanggal);
+void tampilkanStruk();
 //UTILITAS : Garis Pembatas
 void garis(){
     cout << setfill('-') << setw(42) << "" << setfill(' ') << endl;
@@ -154,40 +155,6 @@ void loadDariFile(){
     system("pause");
 }
 
-void tampilkanSemuaPesanan() {
-    system("cls");
-    tampilkanHeader();
-    cout << "================ DAFTAR PESANAN ================" << endl;
-
-    if (head == nullptr) {
-        cout << "\n  Belum ada data pesanan saat ini." << endl << endl;
-        system("pause");
-        return;
-    }
-
-    // Header Tabel
-    cout << left << setw(4)  << "ID" 
-         << setw(15) << "Pelanggan" 
-         << setw(20) << "Layanan" 
-         << setw(8)  << "Berat" 
-         << setw(12) << "Harga" 
-         << setw(10) << "Status" << endl;
-    garis();
-
-    pesanan* temp = head;
-    while (temp != nullptr) {
-        cout << left << setw(4)  << temp->id
-             << setw(15) << (temp->namaPelanggan.length() > 13 ? temp->namaPelanggan.substr(0, 11) + ".." : temp->namaPelanggan)
-             << setw(20) << layanan[temp->jenisLayanan] // Mengambil teks dari array konstanta
-             << temp->beratKg << setw(5) << " Kg"
-             << "Rp " << right << setw(7) << temp->harga << "  "
-             << left << setw(10) << temp->status << endl;
-        
-        temp = temp->next;
-    }
-    garis();
-    system("pause");
-}
 //SORTING - Bubble Sort by Harga (Admin)
 void sortPesanan(){
     system("cls");
@@ -233,4 +200,64 @@ void sortPesanan(){
     cout << "\n  Pesanan berhasil diurutkan! " << endl << endl;
     system("pause");
     tampilkanSemuaPesanan();
+}
+
+void tambahPesanan(){
+    system("cls");
+    tampilkanHeader();
+    cout << "============ TAMBAH PESANAN ============" << endl;
+    pesanan* baru = new pesanan();
+    baru->id = idCounter++;
+    //otomatis pakai nama user yang login
+    baru->namaPelanggan = sesiNama;
+    cin.ignore();
+    cout << "  Nama Pelanggan         : " << sesiNama << endl;
+    cout << "  Berat (kg)             : "; cin >> baru->beratKg;
+    cout << endl;
+    tampilkanLayanan();
+    int pilihan;
+    do {
+        cout << "  Pilih jenis layanan (1-5): "; cin >> pilihan;
+    } while(pilihan < 1 || pilihan > 5);
+    baru->jenisLayanan = pilihan;
+
+    baru->harga = baru->beratKg * tarif[baru->jenisLayanan];
+
+    int p;
+    cout << "\n  Pengiriman:" << endl;
+    cout << "  [1] Ambil di Tempat" << endl;
+    cout << "  [2] Antar ke Alamat (+Rp " << biaya_antar << ")" << endl;
+    cout << "  Pilih: "; cin >> p;
+
+    if(p == 1){
+        baru->pengiriman = "Ambil";
+        baru->alamat = "-";
+    } else {
+        baru->pengiriman = "Antar";
+        cout << "  Alamat Pengantaran   : "; cin.ignore();
+        getline(cin, baru->alamat);
+        baru->harga += biaya_antar;
+    }
+
+    cout << "  Tanggal (dd/mm/yyyy): ";
+    cin >> baru->tanggal;
+
+    baru->status = "Antri";  
+    baru->next   = nullptr;
+
+    if (head == nullptr) {
+        head = baru;
+    } else {
+        pesanan* temp = head;
+        while (temp->next != nullptr) temp = temp->next;
+        temp->next = baru;
+    }
+    
+    tambahRiwayat(baru->id, baru->namaPelanggan, "Tambah", baru->tanggal);
+
+    cout << "\n  Pesanan berhasil ditambahkan!" << endl;
+    cout << "  Total harga: Rp " << baru->harga << endl << endl;
+    system("pause");
+
+    tampilkanStruk();
 }
