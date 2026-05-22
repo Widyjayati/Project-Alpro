@@ -1,3 +1,284 @@
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+const string adminUser  = "admin";
+const string adminPass  = "12345";
+const float biaya_antar = 5000;
+const float tarif[6]    = {
+    0,                  //tidak dipakai
+    7000,               //cuci + setrika
+    5000,               //cuci aja
+    4000,               //setrika aja
+    12000,              //express
+    15000               //dry clean
+};
+const string layanan[6] = {
+    "",
+    "Cuci + Setrika",
+    "Cuci Saja",
+    "Setrika Saja",
+    "Express (Cuci + Setrika)",
+    "Dry Clean"
+};
+
+
+struct pesanan {
+    int id;
+    string namaPelanggan;
+    int jenisLayanan;        
+    float beratKg;
+    string pengiriman;          //ambil, antar
+    string alamat;              //diisi kl pengiriman = antar
+    float harga;
+    string status;              //antri, proses, selesai
+    string tanggal;             //input manual tgl
+    pesanan* next;              
+};
+pesanan* head   = nullptr;
+
+
+struct riwayat{
+    int idPesanan;
+    string namaPelanggan;
+    string keterangan;
+    string tanggal;
+    riwayat* next;              
+    riwayat* prev;              
+};
+
+riwayat* rHead  = nullptr;
+riwayat* rTail  = nullptr;
+int idCounter   = 1;            
+//data sesi login
+string sesiRole = "";           //admin/user
+string sesiNama = "";           //nama pelanggan
+
+void tampilkanSemuaPesanan();
+void tambahRiwayat(int idPesanan, string nama, string keterangan, string tanggal);
+
+void garis(){
+    cout << setfill('-') << setw(42) << "" << setfill(' ') << endl;
+}
+void garisBintang(){
+    cout << setfill('*') << setw(42) << "" << setfill(' ') << endl;
+}
+void tampilkanHeader(){
+    cout << setfill('=') << setw(42) << "" << setfill(' ') << endl;
+    cout << "         SISTEM MANAJEMEN LAUNDRY" << endl;
+    cout << setfill('=') << setw(42) << "" << setfill(' ') << endl;
+}
+void tampilkanLayanan(){
+    cout << "Jenis Layanan:" << endl;
+    garis();
+    for(int i=1; i<=5; i++){
+        cout << " [" << i << "] " << left << setw(26) << layanan[i]
+        << "Rp " << right << setw(5) << tarif[i] << "/kg" << endl;
+    }
+    garis();
+}
+
+
+void simpanKeFile(){
+    FILE* fptr = fopen("Pesanan.txt", "w");
+    if(fptr == NULL){
+        cout << "Gagal membuka file" << endl << endl;
+        system("pause");
+        return;
+    }
+    pesanan* temp = head;
+    while(temp != nullptr){
+
+        fprintf(fptr, "%d|%s|%d|%.2f|%s|%s|%.2f|%s|%s\n",
+            temp->id,
+            temp->namaPelanggan.c_str(),
+            temp->jenisLayanan,
+            temp->beratKg,
+            temp->pengiriman.c_str(),
+            temp->alamat.c_str(),
+            temp->harga,
+            temp->status.c_str(),
+            temp->tanggal.c_str()
+        );
+        temp = temp->next;
+    }
+    fclose(fptr);
+    cout << "\n  Data berhasil disimpan ke 'Pesanan.txt'!" << endl << endl;
+    system("pause");
+}
+
+
+void loadDariFile(){
+    FILE* fptr = fopen("Pesanan.txt", "r");
+
+    if(fptr == NULL) return;
+
+    char namaBuf[100], pengBuf[10], alamatBuf[200];
+    char statusBuf[20], tglBuf[20];
+    int idBuf, layanBuf;
+    float beratBuf, hargaBuf;
+    int maxId = 0;
+
+    while(fscanf(fptr, "%d|%99[^|]|%d|%f|%9[^|]|%199[^|]|%f|%19[^|]|%19[^\n]\n",
+            &idBuf, namaBuf, &layanBuf, &beratBuf,
+            pengBuf, alamatBuf, &hargaBuf, 
+            statusBuf, tglBuf) == 9) 
+    {
+        pesanan* baru       = new pesanan();
+        baru->id            = idBuf;
+        baru->namaPelanggan = string(namaBuf);
+        baru->jenisLayanan  = layanBuf;
+        baru->beratKg       = beratBuf;
+        baru->pengiriman    = string(pengBuf);
+        baru->alamat        = string(alamatBuf);
+        baru->harga         = hargaBuf;
+        baru->status        = string(statusBuf);
+        baru->tanggal       = string(tglBuf);
+        baru->next          = nullptr;
+
+        //insert ke akhir
+        if(head == nullptr) {
+            head = baru;
+        } else {
+            pesanan* temp = head;
+            while(temp->next != nullptr) temp = temp->next;
+            temp->next = baru;
+        }
+        if(baru->id > maxId) maxId = baru->id;
+    }
+    idCounter = maxId + 1;          //lanjutin id dr data trkhir
+    fclose(fptr);
+    cout << "  Data berhasil dimuat dari file." << endl;
+    system("pause");
+}
+
+//sorting brdasarkan harga
+void sortPesanan(){
+    system("cls");
+    tampilkanHeader();
+    cout << "============ URUTKAN PESANAN ============" << endl;
+
+    if(head == nullptr || head->next == nullptr){
+        cout << "\n  Data tidak cukup untuk diurutkan." << endl << endl;
+        system("pause");
+        return;
+    }
+    garis();
+    cout << "  [1] Harga Terendah ke Tertinggi" << endl;
+    cout << "  [2] Harga Tertinggi ke Terendah" << endl;
+    garis();
+    int pil;
+    do {
+        cout << "  Pilihan (1-2): "; cin >> pil;
+        if (pil < 1 || pil > 2)
+            cout << "  Pilihan tidak valid, coba lagi.\n";
+    } while (pil < 1 || pil > 2);
+
+    //bubble sort
+    bool swapped;
+    do{
+        swapped      = false;
+        pesanan* cur = head;
+
+        while(cur->next != nullptr){
+            bool perluTukar = (pil == 1 && cur->harga > cur->next->harga) ||
+                              (pil == 2 && cur->harga < cur->next->harga);
+
+            if(perluTukar){
+                swap(cur->id, cur->next->id);
+                swap(cur->namaPelanggan, cur->next->namaPelanggan);
+                swap(cur->jenisLayanan, cur->next->jenisLayanan);
+                swap(cur->beratKg, cur->next->beratKg);
+                swap(cur->pengiriman, cur->next->pengiriman);
+                swap(cur->alamat, cur->next->alamat);
+                swap(cur->harga, cur->next->harga);
+                swap(cur->status, cur->next->status);
+                swap(cur->tanggal, cur->next->tanggal);
+                swapped = true;
+            }
+            cur = cur->next;
+        }
+    } while(swapped);
+    cout << "\n  Pesanan berhasil diurutkan! " << endl << endl;
+    system("pause");
+    tampilkanSemuaPesanan();
+}
+
+void tambahPesanan(){
+    system("cls");
+    tampilkanHeader();
+    cout << "============ TAMBAH PESANAN ============" << endl;
+    pesanan* baru = new pesanan();
+    baru->id = idCounter++;
+    //otomatis pake nama user yg login
+    baru->namaPelanggan = sesiNama;
+    cout << "  Nama Pelanggan         : " << sesiNama << endl;
+    cout << "  Berat (kg)             : "; cin >> baru->beratKg;
+    cout << endl;
+    tampilkanLayanan();
+    int pilihan;
+    do {
+        cout << "  Pilih jenis layanan (1-5): "; cin >> pilihan;
+    } while(pilihan < 1 || pilihan > 5);
+    baru->jenisLayanan = pilihan;
+
+    baru->harga = baru->beratKg * tarif[baru->jenisLayanan];
+
+    int p;
+    cout << "\n  Pengiriman:" << endl;
+    cout << "  [1] Ambil di Tempat" << endl;
+    cout << "  [2] Antar ke Alamat (+Rp " << biaya_antar << ")" << endl;
+    cout << "  Pilih: "; cin >> p;
+
+    if(p == 1){
+        baru->pengiriman = "Ambil";
+        baru->alamat = "-";
+    } else {
+        baru->pengiriman = "Antar";
+        cout << "  Alamat Pengantaran   : "; 
+        cin.ignore();
+        getline(cin, baru->alamat);
+        baru->harga += biaya_antar;
+    }
+
+    cout << "  Tanggal (dd/mm/yyyy): ";
+    cin >> baru->tanggal;
+
+    baru->status = "Antri";  
+    baru->next   = nullptr;
+
+    if (head == nullptr) {
+        head = baru;
+    } else {
+        pesanan* temp = head;
+        while (temp->next != nullptr) temp = temp->next;
+        temp->next = baru;
+    }
+    
+    tambahRiwayat(baru->id, baru->namaPelanggan, "Tambah", baru->tanggal);
+
+    cout << "\n  Pesanan berhasil ditambahkan!" << endl;
+    cout << "  Total harga: Rp " << baru->harga << endl << endl;
+    system("pause");
+
+    garisBintang();
+    cout << "           STRUK LAUNDRY" << endl;
+    garisBintang();
+    cout << "  ID Pesanan  : " << baru->id << endl;
+    cout << "  Nama        : " << baru->namaPelanggan << endl;
+    cout << "  Layanan     : " << layanan[baru->jenisLayanan] << endl;
+    cout << "  Berat       : " << baru->beratKg << " kg" << endl;
+    cout << "  Pengiriman  : " << baru->pengiriman << endl;
+    if (baru->pengiriman == "Antar")
+        cout << "  Alamat      : " << baru->alamat << endl;
+    cout << "  Total Harga : Rp " << baru->harga << endl;
+    cout << "  Status      : " << baru->status << endl;
+    cout << "  Tanggal     : " << baru->tanggal << endl;
+    garisBintang();
+    cout << endl;
+    system("pause");
+}
+
 //riwayat
 void tambahRiwayat(int idPesanan, string nama, string keterangan, string tanggal) {
     riwayat* baru       = new riwayat();
@@ -12,13 +293,12 @@ void tambahRiwayat(int idPesanan, string nama, string keterangan, string tanggal
         rHead = baru;
         rTail = baru;
     } else {
-        baru->prev  = rTail; 
-        rTail->next = baru; 
-        rTail       = baru; 
+        baru->prev  = rTail;
+        rTail->next = baru;
+        rTail       = baru;
     }
 }
 
-//nampilin smua riwayat dlm bntuk tabel
 void tampilkanRiwayat() {
     system("cls");
     tampilkanHeader();
@@ -56,8 +336,6 @@ void tampilkanRiwayat() {
     system("pause");
 }
 
-
-//tampilin pesenan
 void tampilkanSemuaPesanan() {
     system("cls");
     tampilkanHeader();
@@ -102,7 +380,6 @@ void tampilkanSemuaPesanan() {
     system("pause");
 }
 
-//nampilin pesenan user yang lg login aja
 void tampilkanPesananUser() {
     system("cls");
     tampilkanHeader();
@@ -135,21 +412,17 @@ void tampilkanPesananUser() {
     system("pause");
 }
 
-
-//struk
 void tampilkanStruk() {
-    int id;
-    cout << "\n  Masukkan ID pesanan: "; cin >> id;
+    system("cls");
+    tampilkanHeader();
+    cout << "========== STRUK PESANAN SAYA ==========" << endl;
 
+    bool ada = false;
     pesanan* temp = head;
+
     while (temp != nullptr) {
-        if (temp->id == id) {
-            //user cm bisa cetak struk punya snsdiri
-            if (sesiRole == "user" && temp->namaPelanggan != sesiNama) {
-                cout << "\n  Akses ditolak. Bukan pesanan Anda.\n\n";
-                system("pause");
-                return;
-            }
+        if (temp->namaPelanggan == sesiNama) {
+            ada = true;
             garisBintang();
             cout << "           STRUK LAUNDRY" << endl;
             garisBintang();
@@ -163,22 +436,19 @@ void tampilkanStruk() {
             cout << "  Total Harga : Rp " << temp->harga << endl;
             cout << "  Status      : " << temp->status << endl;
             cout << "  Tanggal     : " << temp->tanggal << endl;
-            garisBintang();
+            garis();
             cout << endl;
-            system("pause");
-            return;
         }
         temp = temp->next;
     }
 
-    cout << "\n  Pesanan dengan ID " << id << " tidak ditemukan.\n\n";
+    if (!ada)
+        cout << "\n  Anda belum memiliki pesanan.\n";
+
+    cout << endl;
     system("pause");
 }
 
-
-
-
-//edit pesenan
 void editPesanan() {
     system("cls");
     tampilkanHeader();
@@ -190,20 +460,15 @@ void editPesanan() {
     pesanan* temp = head;
     while (temp != nullptr) {
         if (temp->id == id) {
-            //user cm bisa edit punya sendiri
             if (sesiRole == "user" && temp->namaPelanggan != sesiNama) {
                 cout << "\n  Akses ditolak. Bukan pesanan Anda.\n\n";
                 system("pause");
                 return;
             }
-
             cout << "\n  Status saat ini  : " << temp->status << endl;
             cout << "  Status baru (Antri / Proses / Selesai): ";
             cin >> temp->status;
-
-            //catet prubahan ke riwayat
             tambahRiwayat(temp->id, temp->namaPelanggan, "Edit", temp->tanggal);
-
             cout << "\n  Data berhasil diperbarui!\n\n";
             system("pause");
             return;
@@ -215,8 +480,6 @@ void editPesanan() {
     system("pause");
 }
 
-
-//hapus pesenan
 void hapusPesanan() {
     system("cls");
     tampilkanHeader();
@@ -230,16 +493,13 @@ void hapusPesanan() {
 
     while (temp != nullptr) {
         if (temp->id == id) {
-            //catet riwayat sblm dihapus
             tambahRiwayat(temp->id, temp->namaPelanggan, "Hapus", temp->tanggal);
-
             if (prev == nullptr) {
-                head = temp->next; 
+                head = temp->next;
             } else {
                 prev->next = temp->next;
             }
             delete temp;
-
             cout << "\n  Pesanan berhasil dihapus!\n\n";
             system("pause");
             return;
@@ -252,8 +512,6 @@ void hapusPesanan() {
     system("pause");
 }
 
-
-//cari pesenan
 void cariPesanan() {
     system("cls");
     tampilkanHeader();
@@ -268,7 +526,6 @@ void cariPesanan() {
     bool ketemu = false;
 
     if (pil == 1) {
-        //cari sesuai id
         int id;
         cout << "  Masukkan ID: "; cin >> id;
 
@@ -288,13 +545,11 @@ void cariPesanan() {
                 cout << "  Status    : " << temp->status << endl;
                 cout << "  Tanggal   : " << temp->tanggal << endl;
                 garis();
-                break; //krn id = unik, jadi lgnsn berenti
+                break;
             }
             temp = temp->next;
         }
-
     } else {
-        //cari sesuai nama
         string nama;
         cout << "  Masukkan nama: ";
         cin.ignore();
@@ -303,7 +558,6 @@ void cariPesanan() {
         pesanan* temp = head;
         while (temp != nullptr) {
             if (temp->namaPelanggan == nama) {
-                // User tidak boleh lihat data orang lain
                 if (sesiRole == "user" && temp->namaPelanggan != sesiNama) {
                     temp = temp->next;
                     continue;
@@ -318,7 +572,6 @@ void cariPesanan() {
                 cout << "  Tanggal   : " << temp->tanggal << endl;
             }
             temp = temp->next;
-            //ngga break, karena nama bisa ada banyak pesanan
         }
     }
 
@@ -329,10 +582,6 @@ void cariPesanan() {
     system("pause");
 }
 
-
-//login
-
-//login admin (cek usn & pw)
 bool loginAdmin() {
     string user, pass;
     cout << "\n  Username : "; cin >> user;
@@ -351,7 +600,6 @@ bool loginAdmin() {
     return false;
 }
 
-//login user (masukkin nama aja)
 bool loginUser() {
     string nama;
     cout << "\n  Masukkan nama Anda: ";
@@ -371,8 +619,6 @@ bool loginUser() {
     return true;
 }
 
-
-//menu admin
 void menuAdmin() {
     int pilih;
     do {
@@ -386,8 +632,7 @@ void menuAdmin() {
         cout << "  [4] Cari Pesanan" << endl;
         cout << "  [5] Urutkan Pesanan" << endl;
         cout << "  [6] Lihat Riwayat Aktivitas" << endl;
-        cout << "  [7] Tampilkan Struk" << endl;
-        cout << "  [8] Simpan ke File" << endl;
+        cout << "  [7] Simpan ke File" << endl;
         cout << "  [0] Logout" << endl;
         garis();
         cout << "  Pilih: "; cin >> pilih;
@@ -397,10 +642,9 @@ void menuAdmin() {
             case 2: editPesanan();           break;
             case 3: hapusPesanan();          break;
             case 4: cariPesanan();           break;
-            case 5: sortPesanan();           break; 
+            case 5: sortPesanan();           break;
             case 6: tampilkanRiwayat();      break;
-            case 7: tampilkanStruk();        break;
-            case 8: simpanKeFile();          break;            
+            case 7: simpanKeFile();          break;
             case 0:
                 sesiRole = "";
                 sesiNama = "";
@@ -414,8 +658,6 @@ void menuAdmin() {
     } while (pilih != 0);
 }
 
-
-//menu pelanggan
 void menuPelanggan() {
     int pilih;
     do {
@@ -432,7 +674,7 @@ void menuPelanggan() {
         cout << "  Pilih: "; cin >> pilih;
 
         switch (pilih) {
-            case 1: tambahPesanan();   break;
+            case 1: tambahPesanan();        break;
             case 2: tampilkanPesananUser(); break;
             case 3: tampilkanStruk();       break;
             case 4: cariPesanan();          break;
@@ -449,8 +691,6 @@ void menuPelanggan() {
     } while (pilih != 0);
 }
 
-
-//halaman utama
 void halamanUtama() {
     int pilihRole;
     do {
@@ -478,10 +718,32 @@ void halamanUtama() {
     } while (pilihRole != 3);
 }
 
+void bersihkanPesanan() {
+    pesanan* temp = head;
+    while (temp != nullptr) {
+        pesanan* hapus = temp;
+        temp = temp->next;
+        delete hapus;
+    }
+    head = nullptr;
+}
 
-//main
+void bersihkanRiwayat() {
+    riwayat* temp = rHead;
+    while (temp != nullptr) {
+        riwayat* hapus = temp;
+        temp = temp->next;
+        delete hapus;
+    }
+    rHead = nullptr;
+    rTail = nullptr;
+}
+
 int main() {
-    loadDariFile();   
+    loadDariFile();
     halamanUtama();
+  
+    bersihkanPesanan();
+    bersihkanRiwayat();
     return 0;
 }
